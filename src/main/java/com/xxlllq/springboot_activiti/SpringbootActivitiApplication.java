@@ -11,7 +11,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @ComponentScan({"org.activiti.rest.diagram", "com.xxlllq"})
 @EnableAsync
-@SpringBootApplication(exclude = org.activiti.spring.boot.SecurityAutoConfiguration.class)
+@SpringBootApplication(exclude = {org.activiti.spring.boot.SecurityAutoConfiguration.class, SecurityAutoConfiguration.class})
+//@SpringBootApplication(exclude = org.activiti.spring.boot.SecurityAutoConfiguration.class)
 public class SpringbootActivitiApplication {
 
     public static void main(String[] args) {
@@ -19,7 +20,7 @@ public class SpringbootActivitiApplication {
     }
 
     @Bean
-    public JsonpCallbackFilter filter(){
+    public JsonpCallbackFilter filter() {
         return new JsonpCallbackFilter();
     }
 }

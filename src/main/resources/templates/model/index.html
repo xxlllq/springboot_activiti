@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<link>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>业务流程模型</title>
+
+
+<link rel="stylesheet" href="/bootstrap-table/bootstrap.min.css">
+<link rel="stylesheet" href="/bootstrap-table/bootstrap-table.min.css">
+<script src="/bootstrap-table/jquery.min.js"></script>
+<script src="/bootstrap-table/bootstrap.min.js"></script>
+<script src="/bootstrap-table/bootstrap-table.min.js"></script>
+<script src="/bootstrap-table/bootstrap-table-zh-CN.min.js"></script>
+</head>
+<body>
+<div>
+    <!--菜单-->
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <ul class="nav nav-pills">
+                <li role="presentation"><a href="/">首页</a></li>
+                <li role="presentation" class="active"><a href="/model/view">流程</a></li>
+                <li role="presentation"><a href="#">表单</a></li>
+                <li role="presentation"><a href="#">决策表</a></li>
+                <li role="presentation"><a href="#">APP</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div style="width: 100%; height: 500px" id="flag1">
+        <!--ToolBar-->
+        <div id="toolbar">
+            <button type="button" class="btn btn-primary" id="createModel">新建</button>
+        </div>
+
+        <!--Table-->
+        <table id="modelTable"></table>
+
+        <!--弹出框-->
+        <div class="modal fade" id="editTableModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="editTableModalTitle">新增</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="form-group">
+                            <label for="name">模型名称</label>
+                            <input type="text" name="name" class="form-control" id="name"
+                                   placeholder="模型名称">
+                        </div>
+                        <!--<div class="form-group">-->
+                        <!--<label for="key">模型Key</label>-->
+                        <!--<input type="text" name="key" class="form-control"-->
+                        <!--id="key" placeholder="模型Key">-->
+                        <!--</div>-->
+                        <div class="form-group">
+                            <label for="description">模型说明</label>
+                            <input type="text" name="description" class="form-control" id="description"
+                                   placeholder="模型说明">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal"><span
+                                class="glyphicon glyphicon-remove" aria-hidden="true"></span>关闭
+                        </button>
+                        <button type="button" id="btn_submit" class="btn btn-primary"><span
+                                class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--提示框-->
+        <div class="alert alert-warning alert-dismissible fade show" id="alertInfo"  role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+        </div>
+
+        <!--<div ng-controller="myCtrl">-->
+        <!--<table border="1" id="model-list" style="width: 80%;text-align: center" class="table table-hover">-->
+        <!--<tr>-->
+        <!--<td>模型编号</td>-->
+        <!--<td>模型名称</td>-->
+        <!--<td>版本</td>-->
+        <!--<td>创建时间</td>-->
+        <!--<td>操作</td>-->
+        <!--</tr>-->
+        <!--<tr ng-repeat="flow in flowList">-->
+        <!--<td>{{flow.id}}</td>-->
+        <!--<td>{{flow.name}}</td>-->
+        <!--<td>{{flow.version}}</td>-->
+        <!--<td>{{flow.createTime}}</td>-->
+        <!--<td>-->
+        <!--<a href="/editor?modelId={{flow.id}}">编辑</a>-->
+        <!--<a href="javascript:flowDelete('{{flow.id}}');">删除</a>-->
+        <!--<a href="javascript:publish('{{flow.id}}')">发布</a>-->
+        <!--</td>-->
+        <!--</tr>-->
+        <!--</table>-->
+        <!--<p></p>-->
+        <!--<p></p>-->
+        <!--</div>-->
+        <!--<div ng-controller="myCtrl1">-->
+        <!--<h4>部署列表</h4>-->
+        <!--<p></p>-->
+        <!--<table border="1" id="deployment-list" style="text-align: center;width:80%;" class="table table-hover">-->
+        <!--<tr>-->
+        <!--<td>编号</td>-->
+        <!--<td>名称</td>-->
+        <!--<td>部署时间</td>-->
+        <!--<td>操作</td>-->
+        <!--</tr>-->
+        <!--<tr ng-repeat="deploy in deployList">-->
+        <!--<td>{{deploy.id}}</td>-->
+        <!--<td>{{deploy.name}}</td>-->
+        <!--<td>{{deploy.deploymentTime}}</td>-->
+        <!--<td><a href="javascript:deleteDeploy('{{deploy.id}}')">删除</a></td>-->
+        <!--</tr>-->
+        <!--</table>-->
+        <!--</div>-->
+    </div>
+</div>
+</body>
+<script>
+    // Table
+    $('#modelTable').bootstrapTable({
+        url: "/model/list",
+        method: 'get',
+        toolbar: '#toolbar',                //工具按钮用哪个容器
+        striped: true,                      //是否显示行间隔色
+        cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        pagination: true,                   //是否显示分页（*）
+        sortable: false,                     //是否启用排序
+        sortOrder: "asc",                   //排序方式
+        // queryParams: queryParams,//传递参数（*）
+        sidePagination: "client",           //分页方式：client客户端分页，server服务端分页（*）
+        pageNumber: 1,                       //初始化加载第一页，默认第一页
+        pageSize: 10,                       //每页的记录行数（*）
+        pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+        search: true,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+        strictSearch: true,
+        showColumns: true,                  //是否显示所有的列
+        showRefresh: true,                  //是否显示刷新按钮
+        minimumCountColumns: 2,             //最少允许的列数
+        clickToSelect: true,                //是否启用点击选中行
+        height: 500,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+        uniqueId: "id",                     //每一行的唯一标识，一般为主键列
+        showToggle: true,                    //是否显示详细视图和列表视图的切换按钮
+        cardView: false,                    //是否显示详细视图
+        detailView: false,                   //是否显示父子表
+        columns: [{
+            field: 'id',
+            title: '模型编号'
+        }, {
+            field: 'name',
+            title: '模型名称'
+        }, {
+            field: 'version',
+            title: '版本'
+        }, {
+            field: 'createTime',
+            title: '创建时间'
+        }, {
+            field: 'description',
+            title: '描述'
+        }, {
+            field: 'id',
+            title: '操作列',
+            width: 120,
+            formatter: actionFormatter
+        }]
+    });
+
+    // 参数查询
+    var queryParams = function (params) {
+        var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+            limit: params.limit,   //页面大小
+            offset: params.offset,  //页码
+            departmentname: $("#txt_search_departmentname").val(),
+            statu: $("#txt_search_statu").val()
+        };
+        return temp;
+    };
+
+    //操作栏的格式化
+    function actionFormatter(value, row, index) {
+        var id = value;
+        var result = "";
+        result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";
+        result += "<a href='http://localhost:8060/modeler.html?modelId=" + id + "' target='_blank' class='btn btn-xs blue'  title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+        result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"DeleteByIds('" + id + "')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+
+        return result;
+    }
+
+    // 新增
+    $("#createModel").click(function () {
+        $("#editTableModalTitle").text("新增");
+        $('#editTableModal').modal({backdrop: 'static', keyboard: false});
+    });
+
+    //保存按钮
+    $("#btn_submit").click(function (e) {
+        //模型名称
+        var name = $("#editTableModal #name").val(), description = $("#editTableModal #description").val();
+        if (!name)
+            name = new Date().getTime();
+
+        $.ajax({
+            method: 'POST',
+            url: '/model/create',
+            data: {"name": name, "description": description},
+            success: function (data) {
+                if (data) {
+                    $('#editTableModal').modal("hide");
+                    alert(data.reason);
+                    if(data.status)
+                        location.reload();
+                }
+            }
+        });
+    })
+</script>
+<script type="text/javascript">
+    // $(function () {
+    //     $("#page1").css({color: "red"});
+    //
+    // });
+    //
+    //
+    // function flowDelete(id) {
+    //     var url = "/models/flowDelete";
+    //     $.ajax({
+    //         method: 'GET',
+    //         url: url,
+    //         dataType: "text",
+    //         data: {"id": id},
+    //         success: function (data) {
+    //             location.reload();
+    //         }
+    //     });
+    //
+    // };
+    //
+    // function publish(id) {
+    //     var url = "models/deploy";
+    //     $.ajax({
+    //         method: 'GET',
+    //         url: url,
+    //         dataType: "text",
+    //         data: {"id": id},
+    //         success: function (data) {
+    //             if (data == "success") {
+    //                 location.reload();
+    //             } else {
+    //                 alert(data);
+    //             }
+    //
+    //         }
+    //     })
+    //
+    // };
+    //
+    // function deleteDeploy(id) {
+    //     var url = "models/deleteDeploy";
+    //     $.ajax({
+    //         method: 'GET',
+    //         url: url,
+    //         dataType: "text",
+    //         data: {"id": id},
+    //         success: function (data) {
+    //             location.reload();
+    //
+    //         }
+    //     })
+    // }
+</script>
+</html>

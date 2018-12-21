@@ -1,16 +1,16 @@
 server:
-  #¶Ë¿Ú
-  port: 8070
+  # ç«¯å£
+  port: 8060
 
 #spring
 spring:
   datasource:
     name: activiti
-    #    useAffectedRows£¬sqlÖ´ĞĞºó·µ»ØÊÜÓ°ÏìµÄĞĞÊı
+    # useAffectedRowsï¼Œsqlæ‰§è¡Œåè¿”å›å—å½±å“çš„è¡Œæ•°
     url: jdbc:mysql://127.0.0.1:3306/${spring.datasource.name}?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useAffectedRows=true
     username: root
     password: root
-    # Ê¹ÓÃdruidÊı¾İÔ´
+    # ä½¿ç”¨druidæ•°æ®æº
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.jdbc.Driver
     filters: stat
@@ -26,11 +26,17 @@ spring:
     testOnReturn: false
     poolPreparedStatements: true
     maxOpenPreparedStatements: 20
+  mvc:
+    static-path-pattern: /**
+    resources:
+      static-locations: classpath:/templates/,classpath:/static/,classpath:/public/
 
   thymeleaf:
-    prefix: classpath:/templates/
-    sufifix: .html
     cache: false
     mode: LEGACYHTML5
-    static-locations: classpath:/static/
-    content-type: text/html
+
+
+security:
+  basic:
+    enabled: false
+
