@@ -41,7 +41,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/model")
-public class ModelController {
+public class ModelController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
 
     @Autowired
@@ -217,7 +217,7 @@ public class ModelController {
 
 
     /**
-     * 流程模型页面
+     * 进入流程模型页面
      *
      * @return
      */
@@ -227,20 +227,4 @@ public class ModelController {
         modelAndView.setViewName("model/index");
         return modelAndView;
     }
-
-
-    private Map<String, Object> success() {
-        Map<String, Object> map = new HashMap();
-        map.put("status", true);
-        map.put("reason", "操作成功");
-        return map;
-    }
-
-    private Map<String, Object> failed(String reason) {
-        Map<String, Object> map = new HashMap();
-        map.put("status", false);
-        map.put("reason", "操作失败：" + reason);
-        return map;
-    }
-
 }

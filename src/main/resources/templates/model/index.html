@@ -13,6 +13,10 @@
 <script src="/bootstrap-table/bootstrap.min.js"></script>
 <script src="/bootstrap-table/bootstrap-table.min.js"></script>
 <script src="/bootstrap-table/bootstrap-table-zh-CN.min.js"></script>
+
+<!--时间格式化-->
+<script src="/libs/custom/date_format.js"></script>
+
 </head>
 <body>
 <div>
@@ -78,7 +82,7 @@
         </div>
 
         <!--提示框-->
-        <div class="alert alert-warning alert-dismissible fade show" id="alertInfo"  role="alert">
+        <div class="alert alert-warning alert-dismissible fade show" id="alertInfo" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -168,10 +172,16 @@
             title: '版本'
         }, {
             field: 'createTime',
-            title: '创建时间'
+            title: '创建时间',
+            formatter: function (value) {
+                if (value) {
+                    var crtTime = new Date(value);
+                    return top.dateFtt("yyyy-MM-dd hh:mm:ss", crtTime);
+                }
+            }
         }, {
             field: 'description',
-            title: '描述'
+            title: '描述（暂未使用）'
         }, {
             field: 'id',
             title: '操作列',
@@ -195,7 +205,7 @@
     function actionFormatter(value, row, index) {
         var id = value;
         var result = "";
-        result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";
+        // result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";
         result += "<a href='http://localhost:8060/modeler.html?modelId=" + id + "' target='_blank' class='btn btn-xs blue'  title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
         result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"DeleteByIds('" + id + "')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
 
@@ -223,7 +233,7 @@
                 if (data) {
                     $('#editTableModal').modal("hide");
                     alert(data.reason);
-                    if(data.status)
+                    if (data.status)
                         location.reload();
                 }
             }
