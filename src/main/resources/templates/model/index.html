@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<link>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>业务流程模型</title>
 
-
-<link rel="stylesheet" href="/bootstrap-table/bootstrap.min.css">
+<link rel="stylesheet" href="/bootstrap/css/bootstrap.css">
 <link rel="stylesheet" href="/bootstrap-table/bootstrap-table.min.css">
 <script src="/bootstrap-table/jquery.min.js"></script>
 <script src="/bootstrap-table/bootstrap.min.js"></script>
@@ -203,20 +201,20 @@
 
     //操作栏的格式化
     function actionFormatter(value, row, index) {
-        var id = value;
-        var result = "";
-        // result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";
-        result += "<a href='http://localhost:8060/modeler.html?modelId=" + id + "' target='_blank' class='btn btn-xs blue'  title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
-        result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"DeleteByIds('" + id + "')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
+        console.info(row);
+        if (row && value) {
+            var id = value;
+            var result = "";
+            // result += "<a href='javascript:;' class='btn btn-xs green' onclick=\"EditViewById('" + id + "', view='view')\" title='查看'><span class='glyphicon glyphicon-search'></span></a>";
+            result += "<a href='javascript:;' target='_blank' class='btn btn-xs blue' onclick=\"deployment('" + id + "')\" title='部署'><span class='glyphicon glyphicon-ok-circle'></span></a>";
+            result += "<a href='javascript:;' target='_blank' class='btn btn-xs blue' onclick=\"start('" + row.id + "')\" title='启动'><span class='glyphicon glyphicon-expand'></span></a>";
+            result += "<a href='http://localhost:8060/modeler.html?modelId=" + id + "' target='_blank' class='btn btn-xs blue'  title='编辑'><span class='glyphicon glyphicon-pencil'></span></a>";
+            result += "<a href='javascript:;' class='btn btn-xs red' onclick=\"DeleteByIds('" + id + "')\" title='删除'><span class='glyphicon glyphicon-remove'></span></a>";
 
-        return result;
+            return result;
+        }
     }
 
-    // 新增
-    $("#createModel").click(function () {
-        $("#editTableModalTitle").text("新增");
-        $('#editTableModal').modal({backdrop: 'static', keyboard: false});
-    });
 
     //保存按钮
     $("#btn_submit").click(function (e) {
@@ -240,7 +238,45 @@
         });
     })
 </script>
+
+<!--流程相关操作-->
 <script type="text/javascript">
+
+    // 新增
+    $("#createModel").click(function () {
+        $("#editTableModalTitle").text("新增");
+        $('#editTableModal').modal({backdrop: 'static', keyboard: false});
+    });
+
+    // 部署流程
+    function deployment(id) {
+        $.ajax({
+            method: 'POST',
+            url: '/model/deployment/' + id,
+            success: function (data) {
+                if (data) {
+                    if (data.status == true)
+                        alert("部署成功");
+                    else
+                        alert("部署失败");
+                }
+            }
+        });
+    }
+
+    // 启动流程
+    function start(name) {
+        $.ajax({
+            method: 'POST',
+            url: '/model/start/' + 'LeaveBill',
+            success: function (data) {
+                if (data) {
+                    console.info(data);
+                }
+            }
+        });
+    }
+
     // $(function () {
     //     $("#page1").css({color: "red"});
     //

@@ -8,11 +8,9 @@ import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
-import org.activiti.engine.ProcessEngine;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.repository.Deployment;
-import org.activiti.engine.repository.DeploymentBuilder;
-import org.activiti.engine.repository.Model;
+import org.activiti.engine.*;
+import org.activiti.engine.repository.*;
+import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.explorer.util.XmlUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -23,14 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +47,8 @@ public class ModelController extends BaseController {
     private ObjectMapper objectMapper;
     @Autowired
     private RepositoryService repositoryService;
-
+    @Autowired
+    private RuntimeService runtimeService;
     @Resource
     private ModelerService modelerService;
 
@@ -62,12 +60,12 @@ public class ModelController extends BaseController {
      * @return
      */
     @PostMapping(value = "/create")
-    public Object createModel(@RequestParam("name") String name,
+    public Object createModel(@RequestParam("name") String name, @RequestParam("key") String key,
                               @RequestParam("description") String description) {
         logger.info("创建空modeler：name:{},key:{},description:{}", name, name, description);
         try {
             //创建空模型
-            String modelId = modelerService.crateModel(name, name, description);
+            String modelId = modelerService.crateModel(name, key, description);
             if (StringUtils.isBlank(modelId))
                 logger.error("创建modeler失败modelId:" + modelId);
 
@@ -110,20 +108,16 @@ public class ModelController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PostMapping("{id}/deployment")
+    @PostMapping("/deployment/{id}")
     public Object deploy(@PathVariable("id") String id) throws Exception {
-
         //获取模型
-        RepositoryService repositoryService = processEngine.getRepositoryService();
         Model modelData = repositoryService.getModel(id);
         byte[] bytes = repositoryService.getModelEditorSource(modelData.getId());
-
         if (bytes == null) {
             return failed("模型数据为空，请先设计流程并成功保存，再进行发布。");
         }
 
         JsonNode modelNode = new ObjectMapper().readTree(bytes);
-
         BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
         if (model.getProcesses().size() == 0) {
             return failed("数据模型不符要求，请至少设计一条主线流程。");
@@ -140,6 +134,41 @@ public class ModelController extends BaseController {
         modelData.setDeploymentId(deployment.getId());
         repositoryService.saveModel(modelData);
 
+        return success();
+    }
+
+    /**
+     * 启动流程
+     *
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/start/{id}")
+    public Object start(@PathVariable("id") String id) throws Exception {
+        //获取identityService
+        IdentityService identityService = processEngine.getIdentityService();
+        //设置节点的执行人
+        identityService.setAuthenticatedUserId("admin");
+        ProcessDefinitionQuery dfr = repositoryService.createProcessDefinitionQuery().processDefinitionKey(id).singleResult();
+
+
+        ProcessDefinitionQuery sd  =dfr;
+        //得到runtimeService
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        //根据流程定义的key（标识）来启动一个实例，activiti找该key下版本最高的流程定义
+        //一般情况下为了方便开发使用该方法启动一个流程实例
+        ProcessInstance processInstance = runtimeService
+                .startProcessInstanceByKey(id);
+        //根据流程定义的id来启动一个实例，这种方法一般不用
+        //runtimeService.startProcessInstanceById(processDefinitionId);
+
+        System.out.println("流程梳理所属流程定义id："
+                + processInstance.getProcessDefinitionId());
+        System.out.println("流程实例的id：" + processInstance.getProcessInstanceId());
+        System.out.println("流程实例的执行id：" + processInstance.getId());
+        System.out.println("流程当前的活动（结点）id：" + processInstance.getActivityId());
+        System.out.println("业务标识：" + processInstance.getBusinessKey());
         return success();
     }
 
@@ -215,6 +244,32 @@ public class ModelController extends BaseController {
         }
     }
 
+
+    /**
+     * 查看流程图
+     *
+     * @param response
+     * @param processInstanceId
+     */
+    @RequestMapping(value = "/image", method = RequestMethod.GET)
+    public void image(HttpServletResponse response,
+                      @RequestParam String processInstanceId) {
+        try {
+            InputStream is = modelerService.getDiagram(processInstanceId);
+            if (is == null)
+                return;
+
+            response.setContentType("image/png");
+            BufferedImage image = ImageIO.read(is);
+            OutputStream out = response.getOutputStream();
+            ImageIO.write(image, "png", out);
+
+            is.close();
+            out.close();
+        } catch (Exception ex) {
+            logger.error("查看流程图失败", ex);
+        }
+    }
 
     /**
      * 进入流程模型页面
