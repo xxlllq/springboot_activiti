@@ -150,10 +150,6 @@ public class ModelController extends BaseController {
         IdentityService identityService = processEngine.getIdentityService();
         //设置节点的执行人
         identityService.setAuthenticatedUserId("admin");
-        ProcessDefinitionQuery dfr = repositoryService.createProcessDefinitionQuery().processDefinitionKey(id).singleResult();
-
-
-        ProcessDefinitionQuery sd  =dfr;
         //得到runtimeService
         RuntimeService runtimeService = processEngine.getRuntimeService();
         //根据流程定义的key（标识）来启动一个实例，activiti找该key下版本最高的流程定义
